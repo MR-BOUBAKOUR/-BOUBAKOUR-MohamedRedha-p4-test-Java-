@@ -1,5 +1,6 @@
 package com.parkit.parkingsystem;
 
+import com.parkit.parkingsystem.constants.Fare;
 import com.parkit.parkingsystem.constants.ParkingType;
 import com.parkit.parkingsystem.dao.ParkingSpotDAO;
 import com.parkit.parkingsystem.dao.TicketDAO;
@@ -16,6 +17,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.util.Date;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
@@ -31,8 +33,9 @@ public class ParkingServiceTest {
     private static TicketDAO ticketDAO;
 
     @BeforeEach
-    private void setUpPerTest() {
+    public void setUpPerTest() {
         try {
+            //given
             when(inputReaderUtil.readVehicleRegistrationNumber()).thenReturn("ABCDEF");
 
             ParkingSpot parkingSpot = new ParkingSpot(1, ParkingType.CAR,false);
@@ -54,8 +57,14 @@ public class ParkingServiceTest {
 
     @Test
     public void processExitingVehicleTest(){
+        when(ticketDAO.getNbTicket(anyString())).thenReturn(0);
+
+        //when
         parkingService.processExitingVehicle();
+
+        //then
         verify(parkingSpotDAO, Mockito.times(1)).updateParking(any(ParkingSpot.class));
+        verify(ticketDAO, Mockito.times(1)).getNbTicket(any());
     }
 
 }

@@ -36,7 +36,6 @@ public class ParkingService {
                 parkingSpotDAO.updateParking(parkingSpot);//allot this parking space and mark it's availability as false
 
                 Date inTime = new Date();
-
                 Ticket ticket = new Ticket();
                 //ID, PARKING_NUMBER, VEHICLE_REG_NUMBER, PRICE, IN_TIME, OUT_TIME)
                 //ticket.setId(ticketID);
@@ -47,9 +46,12 @@ public class ParkingService {
                 ticket.setOutTime(null);
                 ticketDAO.saveTicket(ticket);
 
+                if (ticketDAO.getNbTicket(vehicleRegNumber) > 1) {
+                    System.out.println("BIENVENUE ! ------------- " +vehicleRegNumber);
+                }
                 System.out.println("Generated Ticket and saved in DB");
-                System.out.println("Please park your vehicle in spot number:"+parkingSpot.getId());
-                System.out.println("Recorded in-time for vehicle number:"+vehicleRegNumber+" is:"+inTime);
+                System.out.println("Please park your vehicle in spot number: " +parkingSpot.getId());
+                System.out.println("Recorded in-time for vehicle number: " +vehicleRegNumber+ " is: " +inTime);
             }
         }catch(Exception e){
             logger.error("Unable to process incoming vehicle",e);
@@ -105,7 +107,12 @@ public class ParkingService {
             Ticket ticket = ticketDAO.getTicket(vehicleRegNumber);
             Date outTime = new Date();
             ticket.setOutTime(outTime);
-            fareCalculatorService.calculateFare(ticket);
+
+            if (ticketDAO.getNbTicket(vehicleRegNumber) > 1)
+                fareCalculatorService.calculateFare(ticket, true);
+            else
+                fareCalculatorService.calculateFare(ticket);
+
             if(ticketDAO.updateTicket(ticket)) {
                 ParkingSpot parkingSpot = ticket.getParkingSpot();
                 parkingSpot.setAvailable(true);
