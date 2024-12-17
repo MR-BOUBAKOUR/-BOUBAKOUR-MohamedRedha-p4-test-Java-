@@ -19,7 +19,7 @@ public class ParkingService {
 
     private InputReaderUtil inputReaderUtil;
     private ParkingSpotDAO parkingSpotDAO;
-    private  TicketDAO ticketDAO;
+    private TicketDAO ticketDAO;
 
     public ParkingService(InputReaderUtil inputReaderUtil, ParkingSpotDAO parkingSpotDAO, TicketDAO ticketDAO){
         this.inputReaderUtil = inputReaderUtil;
@@ -103,19 +103,26 @@ public class ParkingService {
 
     public void processExitingVehicle() {
         try{
+            // targeting the right ticket. If there is none, an exception is thrown
             String vehicleRegNumber = getVehichleRegNumber();
             Ticket ticket = ticketDAO.getTicket(vehicleRegNumber);
+
+            // setting the outTime in the ticket object
             Date outTime = new Date();
             ticket.setOutTime(outTime);
 
+            // setting the price in the ticket object
             if (ticketDAO.getNbTicket(vehicleRegNumber) > 1)
                 fareCalculatorService.calculateFare(ticket, true);
             else
                 fareCalculatorService.calculateFare(ticket);
 
+            // in the if statement, the update of the price and outTime is made in the DB, then a true statement is returned
             if(ticketDAO.updateTicket(ticket)) {
+                // targeting the spot who was linked to the ticket and making him available again in the parkingSpot object
                 ParkingSpot parkingSpot = ticket.getParkingSpot();
                 parkingSpot.setAvailable(true);
+                // update of the DB
                 parkingSpotDAO.updateParking(parkingSpot);
                 System.out.println("Please pay the parking fare:" + ticket.getPrice());
                 System.out.println("Recorded out-time for vehicle number:" + ticket.getVehicleRegNumber() + " is:" + outTime);
