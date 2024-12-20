@@ -35,3 +35,4 @@ replay_pid*
 *.iml
 out
 gen
+!/src/test/java/com/parkit/parkingsystem/integration/config/DataBaseTestConfig.java

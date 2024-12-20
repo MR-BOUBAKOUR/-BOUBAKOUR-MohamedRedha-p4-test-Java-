@@ -114,7 +114,11 @@ public class FareCalculatorServiceTest {
         ticket.setInTime(inTime);
         ticket.setOutTime(outTime);
         ticket.setParkingSpot(parkingSpot);
+
+        // When
         fareCalculatorService.calculateFare(ticket);
+
+        // Then
         assertEquals(0, ticket.getPrice() );
     }
 
@@ -128,7 +132,11 @@ public class FareCalculatorServiceTest {
         ticket.setInTime(inTime);
         ticket.setOutTime(outTime);
         ticket.setParkingSpot(parkingSpot);
+
+        // When
         fareCalculatorService.calculateFare(ticket);
+
+        // Then
         assertEquals(0, ticket.getPrice() );
     }
 

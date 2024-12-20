@@ -42,9 +42,7 @@ public class ParkingServiceTest {
         }
     }
 
-    @Test
-    public void testProcessIncomingVehicle() throws Exception {
-
+    private Ticket setupTicket() {
         Ticket ticket = new Ticket();
         ticket.setId(3);
         ticket.setParkingSpot(new ParkingSpot(1, ParkingType.CAR, false));
@@ -52,6 +50,14 @@ public class ParkingServiceTest {
         ticket.setPrice(0);
         ticket.setInTime(new Date(System.currentTimeMillis() - (60*60*1000)));
         ticket.setOutTime(null);
+
+        return ticket;
+    }
+
+    @Test
+    public void testProcessIncomingVehicle() throws Exception {
+
+        Ticket ticket = setupTicket();
 
         when(inputReaderUtil.readVehicleRegistrationNumber()).thenReturn("ABC");
         when(inputReaderUtil.readSelection()).thenReturn(1);
@@ -83,14 +89,11 @@ public class ParkingServiceTest {
     public void testProcessExitingVehicle() throws Exception {
 
         ParkingSpot parkingSpot = new ParkingSpot(1, ParkingType.CAR, true);
-        Ticket ticket = new Ticket();
-        ticket.setId(2);
-        ticket.setInTime(new Date(System.currentTimeMillis() - (60*60*1000)));
-        ticket.setOutTime(new Date(System.currentTimeMillis()));
-        ticket.setVehicleRegNumber("DEF");
+        Ticket ticket = setupTicket();
+
         ticket.setParkingSpot(parkingSpot);
 
-        when(inputReaderUtil.readVehicleRegistrationNumber()).thenReturn("DEF");
+        when(inputReaderUtil.readVehicleRegistrationNumber()).thenReturn("ABC");
         when(ticketDAO.getTicket(anyString())).thenReturn(ticket);
         when(ticketDAO.getNbTicket(anyString())).thenReturn(2);
         when(ticketDAO.updateTicket(any(Ticket.class))).thenReturn(true);
@@ -100,13 +103,13 @@ public class ParkingServiceTest {
         parkingService.processExitingVehicle();
 
         //then
-        verify(ticketDAO, Mockito.times(1)).getNbTicket("DEF");
+        verify(ticketDAO, Mockito.times(1)).getNbTicket("ABC");
         verify(ticketDAO, Mockito.times(1)).updateTicket(any(Ticket.class));
         verify(parkingSpotDAO, Mockito.times(1)).updateParking(any(ParkingSpot.class));
 
-        Ticket updatedTicket = ticketDAO.getTicket("DEF");
-        assertEquals(2, updatedTicket.getId());
-        assertEquals("DEF", updatedTicket.getVehicleRegNumber());
+        Ticket updatedTicket = ticketDAO.getTicket("ABC");
+        assertEquals(3, updatedTicket.getId());
+        assertEquals("ABC", updatedTicket.getVehicleRegNumber());
         assertEquals(System.currentTimeMillis() - (60*60*1000), updatedTicket.getInTime().getTime(), 1000);
         assertEquals(System.currentTimeMillis(), updatedTicket.getOutTime().getTime(), 1000);
         assertTrue(updatedTicket.getPrice() > 0);
@@ -116,14 +119,10 @@ public class ParkingServiceTest {
     public void testProcessExitingVehicleUnableUpdate() throws Exception {
 
         ParkingSpot parkingSpot = new ParkingSpot(1, ParkingType.CAR, true);
-        Ticket ticket = new Ticket();
-        ticket.setId(2);
-        ticket.setInTime(new Date(System.currentTimeMillis() - (60*60*1000)));
-        ticket.setOutTime(new Date(System.currentTimeMillis()));
-        ticket.setVehicleRegNumber("GHI");
+        Ticket ticket = setupTicket();
         ticket.setParkingSpot(parkingSpot);
 
-        when(inputReaderUtil.readVehicleRegistrationNumber()).thenReturn("GHI");
+        when(inputReaderUtil.readVehicleRegistrationNumber()).thenReturn("ABC");
         when(ticketDAO.getTicket(anyString())).thenReturn(ticket);
         when(ticketDAO.getNbTicket(anyString())).thenReturn(2);
         when(ticketDAO.updateTicket(any(Ticket.class))).thenReturn(false);
@@ -132,11 +131,11 @@ public class ParkingServiceTest {
         parkingService.processExitingVehicle();
 
         //then
-        verify(ticketDAO, Mockito.times(1)).getNbTicket("GHI");
+        verify(ticketDAO, Mockito.times(1)).getNbTicket("ABC");
         verify(ticketDAO, Mockito.times(1)).updateTicket(any(Ticket.class));
         verify(parkingSpotDAO, Mockito.times(0)).updateParking(any(ParkingSpot.class));
 
-        Ticket updatedTicket = ticketDAO.getTicket("GHI");
+        Ticket updatedTicket = ticketDAO.getTicket("ABC");
         assertEquals(parkingSpot, updatedTicket.getParkingSpot());
     }
 
