@@ -141,7 +141,7 @@ public class ParkingServiceTest {
     }
 
     @Test
-    public void testGetNextParkingNumberIfAvailable () {
+    public void testGetNextParkingNumberIfAvailable () throws Exception {
 
         when(inputReaderUtil.readSelection()).thenReturn(1);
         when(parkingSpotDAO.getNextAvailableSlot(ParkingType.CAR)).thenReturn(1);
@@ -153,5 +153,28 @@ public class ParkingServiceTest {
         assertEquals(1, parkingSpot.getId());
         assertEquals(ParkingType.CAR, parkingSpot.getParkingType());
         assertTrue(parkingSpot.isAvailable());
+
     }
+
+    @Test
+    public void testGetNextParkingNumberIfAvailableParkingNumberNotFound () {
+
+        when(inputReaderUtil.readSelection()).thenReturn(1);
+        when(parkingSpotDAO.getNextAvailableSlot(any(ParkingType.class))).thenReturn(-1);
+
+        Exception exception = assertThrows(Exception.class, () -> parkingService.getNextParkingNumberIfAvailable());
+        assertEquals("Error fetching parking number from DB. Parking slots might be full", exception.getMessage());
+
+    }
+
+    @Test
+    public void testGetNextParkingNumberIfAvailableParkingNumberWrongArgument () {
+
+        when(inputReaderUtil.readSelection()).thenReturn(3);
+
+        Exception exception = assertThrows(IllegalArgumentException.class, () -> parkingService.getNextParkingNumberIfAvailable());
+        assertEquals("Entered input is invalid", exception.getMessage());
+
+    }
+
 }
