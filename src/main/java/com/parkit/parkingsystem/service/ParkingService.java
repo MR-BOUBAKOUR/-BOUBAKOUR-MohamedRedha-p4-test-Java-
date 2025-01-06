@@ -126,6 +126,7 @@ public class ParkingService {
                 parkingSpot.setAvailable(true);
                 // update of the DB
                 parkingSpotDAO.updateParking(parkingSpot);
+
                 System.out.println("Please pay the parking fare:" + ticket.getPrice());
                 System.out.println("Recorded out-time for vehicle number:" + ticket.getVehicleRegNumber() + " is:" + outTime);
             }else{
