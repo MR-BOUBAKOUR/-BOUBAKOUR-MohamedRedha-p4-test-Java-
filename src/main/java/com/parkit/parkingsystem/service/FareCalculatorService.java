@@ -18,12 +18,9 @@ public class FareCalculatorService {
             throw new IllegalArgumentException("The Parking Type is null");
         }
 
-        double inMillis = ticket.getInTime().getTime();
-        double inHour = inMillis / (60 * 60 * 1000);
 
-        double outMillis = ticket.getOutTime().getTime();
-        double outHour = outMillis / (60 * 60 * 1000);
-
+        double inHour = (double) ticket.getInTime().getTime() / (60 * 60 * 1000);
+        double outHour = (double) ticket.getOutTime().getTime() / (60 * 60 * 1000);
         double duration = outHour - inHour;
 
         if (duration <= 0.5) {
