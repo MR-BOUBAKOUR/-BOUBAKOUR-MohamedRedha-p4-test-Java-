@@ -43,7 +43,7 @@ public class ParkingDataBaseIT {
         ticketDAO = new TicketDAO();
         ticketDAO.dataBaseConfig = dataBaseTestConfig;
         dataBasePrepareService = new DataBasePrepareService();
-        //dataBasePrepareService.clearDataBaseEntries();
+        dataBasePrepareService.clearDataBaseEntries();
     }
 
     @BeforeEach
@@ -53,12 +53,12 @@ public class ParkingDataBaseIT {
 
 
         dataBasePrepareService = new DataBasePrepareService();
-        //dataBasePrepareService.clearDataBaseEntries();
+        dataBasePrepareService.clearDataBaseEntries();
     }
 
     @AfterAll
     public static void tearDown(){
-        //dataBasePrepareService.clearDataBaseEntries();
+        dataBasePrepareService.clearDataBaseEntries();
     }
 
     @Test
@@ -79,7 +79,8 @@ public class ParkingDataBaseIT {
     public void testParkingLotExit() throws InterruptedException {
         testParkingACar();
 
-        Thread.sleep(1000);
+        // making sure that the entry is properly recorded in the database before starting the exiting process.
+        Thread.sleep(500);
 
         ParkingService parkingService = new ParkingService(inputReaderUtil, parkingSpotDAO, ticketDAO);
         parkingService.processExitingVehicle();
@@ -92,20 +93,34 @@ public class ParkingDataBaseIT {
     }
 
     @Test
-    public void testParkingLotExitRecurringUser()  {
-        Ticket oldTicket = new Ticket();
-        oldTicket.setInTime(new Date(System.currentTimeMillis() - (60 * 60 * 1000)));
-        oldTicket.setOutTime(new Date());
-        oldTicket.setVehicleRegNumber("b");
-        oldTicket.setParkingSpot(new ParkingSpot(1, ParkingType.CAR, false));
-        ticketDAO.saveTicket(oldTicket);
+    public void testParkingLotExitRecurringUser() throws InterruptedException {
+        // an old ticket being already in the database for the user
+        Ticket initTicket = new Ticket();
+        initTicket.setVehicleRegNumber("b");
+            // the day before (= minus 25h)
+        initTicket.setInTime(new Date(System.currentTimeMillis() - (25 * 60 * 60 * 1000)));
+            // the day before (= minus 24h)
+        initTicket.setOutTime(new Date(System.currentTimeMillis() - (24 * 60 * 60 * 1000)));
+        initTicket.setPrice(1.5);
+        initTicket.setParkingSpot(new ParkingSpot(1, ParkingType.CAR, true));
+        ticketDAO.saveTicket(initTicket);
 
-        int nbTickets = ticketDAO.getNbTicket("b");
-        assertEquals(1, nbTickets);
-
-        // current parking
+        // a new ticket being generated for him
         ParkingService parkingService =  new ParkingService(inputReaderUtil, parkingSpotDAO, ticketDAO);
-        parkingService.processIncomingVehicle();
+        Ticket secondTicket = new Ticket();
+        secondTicket.setVehicleRegNumber("b");
+        secondTicket.setInTime(new Date(System.currentTimeMillis() - (60 * 60 * 1000)));
+        secondTicket.setParkingSpot(new ParkingSpot(1, ParkingType.CAR, false));
+        ticketDAO.saveTicket(secondTicket);
+
+        // the ticket is updated when the user is leaving
         parkingService.processExitingVehicle();
+        Ticket secondTicketFinal = ticketDAO.getTicket("b");
+
+        // checking that we have two tickets in the database
+        assertEquals(2, ticketDAO.getNbTicket("b"));
+        // this will check that the discount is being applied to the final result.
+        // for one hour: 1.5 without discount and 1.425 with the discount of 5%
+        assertEquals(1.425, secondTicketFinal.getPrice(), 0.1);
     }
 }
