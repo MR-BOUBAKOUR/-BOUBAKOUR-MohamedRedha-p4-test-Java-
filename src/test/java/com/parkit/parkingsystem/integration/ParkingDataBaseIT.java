@@ -91,7 +91,7 @@ public class ParkingDataBaseIT {
 
     @Test
     public void testParkingLotExitRecurringUser() {
-        // an old ticket being already in the database for the user
+        // an old ticket being already in the database for the user "b"
         Ticket initTicket = new Ticket();
         initTicket.setVehicleRegNumber("b");
             // the day before (= minus 25h)
@@ -103,6 +103,8 @@ public class ParkingDataBaseIT {
         ticketDAO.saveTicket(initTicket);
 
         // a new ticket being generated for him
+        // not using processIncomingVehicle just soo that we can set the inTime = one hour before the outTime
+        // this will allow us to check if the discount is being applied
         ParkingService parkingService =  new ParkingService(inputReaderUtil, parkingSpotDAO, ticketDAO);
         Ticket secondTicket = new Ticket();
         secondTicket.setVehicleRegNumber("b");
@@ -110,12 +112,13 @@ public class ParkingDataBaseIT {
         secondTicket.setParkingSpot(new ParkingSpot(1, ParkingType.CAR, false));
         ticketDAO.saveTicket(secondTicket);
 
-        // the ticket is updated when the user is leaving
+        // the secondTicket is updated when the user is leaving
         parkingService.processExitingVehicle();
         Ticket secondTicketFinal = ticketDAO.getTicket("b");
 
         // checking that we have two tickets in the database
         assertEquals(2, ticketDAO.getNbTicket("b"));
+
         // this will check that the discount is being applied to the final result.
         // for one hour: 1.5 without discount and 1.425 with the discount of 5%
         assertEquals(1.425, secondTicketFinal.getPrice(), 0.1);
